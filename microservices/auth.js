@@ -2,7 +2,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const User = require("../models/UserSchema");
 const asyncHandler = require("express-async-handler");
 const logger = require("../logger/logger");
 
