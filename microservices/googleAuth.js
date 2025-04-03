@@ -108,8 +108,8 @@ const callBack = expressAsyncHandler(async (req, res) => {
         password: genHashpass,
         ...user.toObject(),
         isGoogleLogin: true,
+        registrationType: 'google'
       });
-
       register(req, res);
     }
   } catch (err) {

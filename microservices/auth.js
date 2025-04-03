@@ -2,7 +2,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../models/UserSchema");
+const { User } = require("../models/UserSchema");
 const asyncHandler = require("express-async-handler");
 const logger = require("../logger/logger");
 
@@ -11,34 +11,29 @@ const privateKey = fs.readFileSync("private.pem", "utf8");
 
 const { error } = require("winston");
 const register = asyncHandler(async (req, res) => {
-  const { email, password, googleId, name, photo, isGoogleLogin } = req.body;
-  const hashedPassword = isGoogleLogin
+  const { email, password, googleId = "", name, photo = "", isGoogleLogin = false } = req.body;
+
+    const user = User.findOne({email});
+    console.log("data",user)
+    if(user){
+      res.json({message:"This email has been already registered please login"}).status(400);
+    }
+    const hashedPassword = isGoogleLogin
     ? password
     : await bcrypt.hash(password, 10);
-
-  try {
-    const newUser = new User({
-      email,
-      password: hashedPassword,
-      name,
-      photo,
-      googleId,
-    });
-    await newUser.save();
-    logger.info(`User ${email} registered successfully`);
-    // res.json({
-    //   message: "User registered successfully",
-    //   code: 200,
-    // });
-    login(req, res);
-  } catch (err) {
-    if (err.code === 11000) {
-      logger.error(`User ${email} already exists`);
-      return res.status(400).json({ error: "User already exists" });
-    }
-    logger.error("Internal server error", { error: err });
-    res.status(500).json({ error: "Internal server error", err: err });
-  }
+  const newUser = new User({
+    email,
+    password: hashedPassword,
+    name,
+    photo,
+    googleId,
+  });
+  await newUser.save();
+  logger.info(`User ${email} registered successfully`);
+  res.json({
+    message: "User registered successfully",
+    code: 200,
+  });
 });
 const login = async (req, res) => {
   const { email, name, photo, password, isGoogleLogin } = req.body;
@@ -59,7 +54,7 @@ const login = async (req, res) => {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      const token = jwt.sign({ id: user.email }, privateKey, {
+      const token = jwt.sign({ id: user.email }, process.env.user_SIGN_SECRET, {
         expiresIn: "1h",
       });
       logger.info(`✅ User '${email}' logged in successfully`);

@@ -83,5 +83,5 @@ app.use((req, res, next) => {
   console.log(`🟡 Incoming request: ${req.method} ${req.url}`);
   next();
 });
-const PORT = process.env.AUTH_PORT || 5000;
+const PORT = process.env.AUTH_PORT || 8080;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
